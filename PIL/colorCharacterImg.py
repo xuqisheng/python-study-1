@@ -1,0 +1,45 @@
+#encoding:utf-8
+import Image
+import sys
+import os
+
+size = 200,200
+
+def main():
+	if len(sys.argv)<=2:
+		print('Need <input img path> <output html path>')
+		return
+	img = Image.open(sys.argv[1])#获取图片
+	size = img.size#会特别大
+	img = img.resize(size)#修改大小
+	img = img.convert('RGB')#转化成RGB
+	img.show()
+	pix = img.load()#加载，获取像素
+	#构造字符画
+	width,height = img.size
+	result = ''
+	for j in xrange(height):
+		for i in xrange(width):
+			#pix[i,j] = (250,251,255) RGB
+			R = '%x' % int(pix[i,j][0])
+			G = '%x' % int(pix[i,j][1])
+			B = '%x' % int(pix[i,j][2])
+			result += '<font color=#'+R+G+B+'>M</font>'
+		result+='<br />'	
+	html_head = '''
+    <html>
+		<head>
+			<style type="text/css">
+			 body {font-family:Monospace; font-size:5px;}
+			</style>
+		</head>
+		<body>
+	'''
+	html_tail = '</body></html>'
+	file = open(sys.argv[2],'w')
+	file.write(html_head+result+html_tail)
+	file.close()
+	print('%f' % (float(os.path.getsize(sys.argv[2]))/(1024*1024)))
+
+if __name__ == '__main__':
+	main()
