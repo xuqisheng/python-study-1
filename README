@@ -1,0 +1,9 @@
+把以前学习Python时的练手项目做个整理
+	PIL:使用PIL处理图像
+	Python-Web:
+		使用flask+jinja2，wsgiref建立简单web后端。
+		使用flask+jinja2搭建一个简单博客(https://github.com/wojiaodoubao/MyBlog-Pro)。
+	爬虫：实现简单爬虫，爬取贴吧一个帖子中的图片。
+	chencoding.py：对路径下文件递归做编码转换。
+	FetchFile.py：用于客户端从主机下载文件。
+
