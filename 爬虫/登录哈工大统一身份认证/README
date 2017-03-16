@@ -1,0 +1,30 @@
+本文介绍使用Python的urllib2和cookielib，登录哈工大统一身份认证系统。
+2017-3-16
+
+	爬网站的时候，很多都需要先登录。登录分为带验证码和不带验证码，不带验证码很简单，直接Post表单即可，带验证码需要获取验证码图片，使用某种手段解析出来，再带验证码提交。下面以登陆哈工大统一身份认证系统为例，解释如何完成一次带验证码的自动登录。对登录其他网站也有借鉴意义。
+
+1.哈工大采用统一身份认证，即不论登录任何系统，都会跳转到统一身份认证页面进行认证，成功之后再跳转进对应页面。追踪登录按钮点击后的流程，可以发现第一项是302，即表示重定向。
+	研究生院转统一身份认证：
+	http://ids.hit.edu.cn/authserver/login?service=http%3A%2F%2F219.217.227.152%3A8080%2Fhitgsmis%2FindexActionCAS.do
+	教务处转统一身份认证：
+	http://ids.hit.edu.cn/authserver/login?service=http%3A%2F%2Fjwts.hit.edu.cn%2FloginCAS
+	乐学网转统一身份认证：
+	https://ids.hit.edu.cn/authserver/login?service=https%3A%2F%2Fcms.hit.edu.cn%2Flogin%2Findex.php%3FauthCAS%3DCAS
+
+2.关于验证码的小秘密
+captcha.html不限制访问，且只返回验证码，每次Get内容都不相同。说明这是专门用于申请验证码的页面，但是它是怎么把验证码和登录人的输入关联的？还记得之前奇怪的type=hidden的input标签吗？仔细看Form Data信息图中，它们是不是都在那里。它们是： 'lt','dllt','execution','_eventId','rmShown'。
+我做实验后发现很可能是这样：
+	1.浏览器Get login，服务端返回一个带这些标记字段的页面，标记写在type=hidden的input标签中。
+	2.服务端下一个被请求的验证码，会和最近一次返回的login页面上的标记字段对应。
+	3.页面Post表单，加入了label信息。服务端根据表单中的标记去找对应验证码，再看匹配不匹配。(很可能是lt标记，因为cas表示身份认证)
+	缺点是坏人一直刷新验证码，会导致映射错误；网络过慢会导致映射错误。
+
+3.解决方案设计
+	1)向login界面发送头为XXX的Get请求，获取页面内容content。
+	2)从中解析出'lt','dllt','execution','_eventId','rmShown'它们对应的值，叫做label_values。
+	3)向captcha.html发送Get，获取页面内容，存入本地，并打开。
+	4)等待用户输入username，password，captcha。
+	5)根据用户输入和2中的label_values构造表单，提交给Form中action指定的url。
+	登录成功，查看cookie，发现多了获取授权的cookie了。将登陆成功的openner和cj返回给调用者，由调用者使用，可以畅通无阻的访问网站了。
+
+4.代码实现见LoginHIT.py，带图片的说明见《登录哈工大统一身份认证系统.pdf》
